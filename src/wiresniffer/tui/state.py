@@ -34,19 +34,10 @@ class TuiState:
             results = [tx for tx in results if tx.security_alerts]
 
         if self.filter_query.strip():
-            q = self.filter_query.strip().lower()
-            filtered = []
-            for tx in results:
-                match = (
-                    q in tx.method.lower()
-                    or q in tx.path.lower()
-                    or q in tx.host.lower()
-                    or (tx.response_status and q in str(tx.response_status))
-                    or q in tx.protocol.value.lower()
-                )
-                if match:
-                    filtered.append(tx)
-            results = filtered
+            from wiresniffer.filtering.query_parser import FilterPredicate
+
+            predicate = FilterPredicate(self.filter_query)
+            results = [tx for tx in results if predicate.matches(tx)]
 
         return results
 

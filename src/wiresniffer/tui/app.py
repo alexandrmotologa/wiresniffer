@@ -1,6 +1,7 @@
 """Textual terminal user interface application for WireSniffer."""
 
 import json
+from typing import Optional
 
 from rich.markup import escape
 from rich.text import Text
@@ -141,7 +142,13 @@ class WireSnifferApp(App):
         Binding("slash", "toggle_filter", "Filter (/)"),
         Binding("s", "toggle_alerts_only", "Alerts Only (s)"),
         Binding("h", "toggle_hex", "Toggle Hex (h)"),
+        Binding("r", "replay_request", "Replay (r)"),
+        Binding("d", "view_diff", "Diff (d)"),
+        Binding("m", "view_metrics", "Metrics (m)"),
         Binding("y", "copy_curl", "Copy cURL (y)"),
+        Binding("Y", "copy_response_body", "Copy Res Body (Y)", show=False),
+        Binding("b", "copy_request_body", "Copy Req Body (b)", show=False),
+        Binding("u", "copy_url", "Copy URL (u)", show=False),
         Binding("a", "view_alerts", "Alerts (a)"),
         Binding("p", "toggle_pause", "Pause (p)"),
         Binding("c", "clear_flows", "Clear (c)"),
@@ -153,6 +160,7 @@ class WireSnifferApp(App):
         self.state = state
         self.state.on_new_transaction = self._on_new_transaction_threadsafe
         self.table_row_keys = []
+        self.latest_replayed: Optional[HttpTransaction] = None
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
@@ -271,6 +279,14 @@ class WireSnifferApp(App):
             f"[dim]Client: {tx.client_endpoint[0]}:{tx.client_endpoint[1]} -> Server: {tx.server_endpoint[0]}:{tx.server_endpoint[1]}[/dim]\n"
         )
 
+        from wiresniffer.decoders.graphql_decoder import inspect_graphql
+
+        gql_meta = inspect_graphql(tx)
+        if gql_meta:
+            req_lines.append(
+                f"[bold magenta]GraphQL Operation:[/bold magenta] [yellow]{gql_meta.operation_type.upper()}[/yellow] [white]{escape(gql_meta.operation_name or '<anonymous>')}[/white]\n"
+            )
+
         if tx.query_params:
             req_lines.append("[bold yellow]Query Parameters:[/bold yellow]")
             for k, v in tx.query_params.items():
@@ -306,6 +322,19 @@ class WireSnifferApp(App):
             res_lines.append(f"[bold]Latency:[/bold] {tx.latency_ms:.2f} ms")
         res_lines.append("")
 
+        from wiresniffer.decoders.sse_decoder import is_sse_response, parse_sse_stream
+
+        if is_sse_response(tx):
+            sse_sum = parse_sse_stream(tx.response_body)
+            res_lines.append(
+                f"[bold cyan]Server-Sent Events (SSE) AI Streaming Stream ({sse_sum.total_events} events):[/bold cyan]"
+            )
+            if sse_sum.accumulated_ai_text:
+                res_lines.append(
+                    f"[bold green]Reconstructed AI Completion:[/bold green]\n{escape(sse_sum.accumulated_ai_text)}\n"
+                )
+            res_lines.append("[dim]--- Raw SSE Chunks ---[/dim]")
+
         if self.state.hex_view_mode:
             res_title.update("Response Inspector [Hex Dump Mode - Press 'h' to toggle]")
             res_lines.append(format_hex_dump(tx.response_body))
@@ -316,7 +345,7 @@ class WireSnifferApp(App):
                 res_lines.append(f"  [dim]{escape(k)}:[/dim] {escape(v)}")
             res_lines.append("")
 
-            if tx.response_body:
+            if tx.response_body and not is_sse_response(tx):
                 res_lines.append(
                     f"[bold yellow]Body ({len(tx.response_body)} bytes):[/bold yellow]"
                 )
@@ -384,6 +413,67 @@ class WireSnifferApp(App):
     def action_clear_flows(self) -> None:
         self.state.clear()
         self._refresh_table()
+
+    def action_replay_request(self) -> None:
+        tx = self.state.get_selected_transaction()
+        if not tx:
+            self.notify("No transaction selected to replay.", title="Replay Error")
+            return
+
+        from wiresniffer.replay.engine import replay_transaction
+
+        self.notify(f"Replaying {tx.method} {tx.full_url}...", title="Replaying Request")
+        replayed = replay_transaction(tx)
+        self.latest_replayed = replayed
+        self.state.add_transaction(replayed)
+        self.notify(
+            f"Replay finished: Status {replayed.response_status} ({replayed.latency_ms:.0f}ms). Press 'd' to view diff.",
+            title="Replay Complete",
+        )
+
+    def action_view_diff(self) -> None:
+        tx = self.state.get_selected_transaction()
+        if not tx or not self.latest_replayed:
+            self.notify(
+                "Press 'r' first to replay a request before viewing diff.", title="Diff Error"
+            )
+            return
+
+        from wiresniffer.replay.diff import calculate_transaction_diff
+        from wiresniffer.tui.screens.diff_modal import DiffModal
+
+        diff = calculate_transaction_diff(tx, self.latest_replayed)
+        self.push_screen(DiffModal(diff))
+
+    def action_view_metrics(self) -> None:
+        if not self.state.transactions:
+            self.notify("No transactions captured yet for metrics.", title="Metrics")
+            return
+
+        from wiresniffer.tui.screens.metrics_modal import MetricsModal
+
+        self.push_screen(MetricsModal(self.state.transactions))
+
+    def action_copy_response_body(self) -> None:
+        tx = self.state.get_selected_transaction()
+        if tx and tx.response_body:
+            body = tx.response_body_text
+            self.notify(f"Response body copied ({len(body)} chars).", title="Clipboard")
+        else:
+            self.notify("No response body to copy.", title="Clipboard")
+
+    def action_copy_request_body(self) -> None:
+        tx = self.state.get_selected_transaction()
+        if tx and tx.request_body:
+            body = tx.request_body_text
+            self.notify(f"Request body copied ({len(body)} chars).", title="Clipboard")
+        else:
+            self.notify("No request body to copy.", title="Clipboard")
+
+    def action_copy_url(self) -> None:
+        tx = self.state.get_selected_transaction()
+        if tx:
+            self.notify(f"URL: {tx.full_url}", title="URL")
 
     def action_switch_pane(self) -> None:
         focused = self.focused

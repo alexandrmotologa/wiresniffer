@@ -44,3 +44,18 @@ For encrypted HTTPS traffic over port 443, WireSniffer extracts host metadata fr
 - **Record Header**: Matches ContentType 22 (Handshake).
 - **ClientHello**: Parses the ClientHello message structure, identifies extension 0x0000 (server_name), and extracts the target domain name.
 - **Metadata**: Records the target hostname, advertised TLS version, and supported cipher suites while leaving encrypted payloads untouched.
+
+## 6. Server-Sent Events (SSE) & AI Streaming Decoder
+
+For streaming endpoints delivering `text/event-stream`:
+- **Event-Stream Framing**: Parses `event`, `data`, `id`, and comment lines dispatched on double newlines.
+- **AI Completion Accumulator**: Reassembles text tokens from OpenAI (`choices[0].delta.content`), Anthropic (`content_block_delta`), and Gemini stream chunks in real time.
+- **Metrics Tracking**: Records event count, chunk throughput, and reconstructed text body.
+
+## 7. GraphQL Query and Mutation Inspector
+
+For GraphQL endpoints (POST or GET requests with JSON query payloads):
+- **Operation Extraction**: Identifies query type (`query`, `mutation`, `subscription`) and explicit operation names.
+- **Variables & Payloads**: Formats input variables and query syntax for inspection.
+- **Security Analysis**: Flags enabled schema introspection (`__schema` / `__type`) and field suggestion leaks ("Did you mean ...?") that disclose internal API types.
+

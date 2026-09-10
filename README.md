@@ -11,22 +11,31 @@ WireSniffer reassembles TCP streams into complete HTTP/1.1, HTTP/2, WebSocket, a
 - **Multi-protocol decoding**:
   - HTTP/1.1: Parses methods, headers, chunked transfer encoding, gzip/deflate decompression, and measures latency.
   - HTTP/2: Parses cleartext `h2c` frames (HEADERS, DATA, SETTINGS) and maintains dynamic HPACK tables.
+  - Server-Sent Events (SSE) & AI Streaming: Parses live token streams for OpenAI, Anthropic, and Gemini completions, reconstructing the full generated response text.
+  - GraphQL Inspector: Extracts operation types (query, mutation, subscription), operation names, variables, and detects active schema introspection or field suggestions.
   - WebSocket: Detects upgrade handshakes, unmasks client payloads, and decodes text and binary frames.
   - gRPC: Unwraps length-delimited envelopes and decodes Protobuf wire fields into JSON structures.
   - TLS SNI: Extracts domain names from `ClientHello` packets without decrypting encrypted traffic.
 - **Real-time security scanner**:
   - Flags Basic Auth credentials and Bearer tokens sent over unencrypted HTTP.
-  - Detects API keys with high entropy: OpenAI, GitHub, AWS, Stripe, Slack, and database passwords.
+  - Detects API keys with high entropy: OpenAI, GitHub, AWS, Stripe, Slack, and database credentials.
   - Validates credit card numbers with the Luhn checksum algorithm and detects SSN patterns.
   - Decodes JWT tokens to verify expiration timestamps (`exp`) and flags insecure algorithms (`none`).
   - Alerts on exposed stack traces (Python tracebacks, Spring Boot error pages, SQL errors).
+  - Enforces custom team policies loaded from `.wiresniffer.yaml` (required headers, forbidden tokens, custom regexes).
+- **Interactive Replay and Diff Engine**:
+  - Re-issues captured HTTP requests against live or staging servers with a single keypress (`r`).
+  - Calculates status code changes, added/removed headers, and unified line-by-line body diffs (`d`).
+- **Traffic and Latency Analytics**:
+  - Calculates p50, p95, and p99 latency percentiles, response size averages, and error rates per endpoint (`m` or `wiresniffer metrics`).
 - **LazyGit-style terminal UI**:
   - Status-coded traffic stream (2xx green, 3xx cyan, 4xx yellow, 5xx red).
   - Split request and response inspectors with formatted JSON tree views and synchronized hex/ASCII viewer.
-  - Instant filtering by host, path, status code, or security alert flag.
+  - Structured query filtering (`status:>=400`, `latency:>200ms`, `header:x`, `json:path=val`, `alert:critical`).
 - **Export and automation**:
+  - Generates standalone security audit reports in HTML and Markdown mapped to OWASP API Security Top 10 and CWE IDs (`wiresniffer report`).
   - Exports sessions to standard HAR 1.2 format for import into Chrome DevTools or Postman.
-  - Generates reproducible `curl` commands directly from selected flows.
+  - Copies requests as `curl` commands (`y`), raw request bytes (`Y`), response bodies (`b`), or full URLs (`u`).
   - Runs in headless scan mode (`wiresniffer scan`) inside CI pipelines to catch leaks during automated tests.
 
 ## Installation
@@ -79,18 +88,36 @@ wiresniffer sniff --port 8080
 wiresniffer inspect capture.pcap
 ```
 
-### 3. Run as a CI Security Gate
+### 3. Generate an OWASP Security Audit Report
+
+```bash
+wiresniffer report capture.pcap --output security-audit.html --format html
+```
+
+Or as Markdown for pull request comments:
+
+```bash
+wiresniffer report capture.pcap --output audit.md --format md
+```
+
+### 4. Analyze Performance and Latency Metrics
+
+```bash
+wiresniffer metrics capture.pcap
+```
+
+### 5. Replay Captured Requests and Inspect Diffs
+
+```bash
+wiresniffer replay capture.pcap --flow 0 --url http://staging.internal/api/v1
+```
+
+### 6. Run as a CI Security Gate
 
 Scan a network capture during end-to-end integration tests. Exit with status 1 if any high-severity credentials or credit cards leak:
 
 ```bash
 wiresniffer scan traffic.pcap --fail-on high
-```
-
-### 4. Export to HAR Format
-
-```bash
-wiresniffer sniff --port 3000 --export session.har
 ```
 
 ## Terminal UI Navigation
@@ -99,10 +126,16 @@ wiresniffer sniff --port 3000 --export session.har
 | --- | --- |
 | `j` / `k` or `Down` / `Up` | Navigate through captured flows |
 | `Tab` / `Shift+Tab` | Switch focus between panels (Flows, Request, Response) |
-| `/` | Open quick filter input |
+| `/` | Open query filter input (`status:>=400`, `latency:>200ms`, `alert:any`) |
+| `r` | Replay selected HTTP transaction against target server |
+| `d` | Open diff modal to inspect changes between original and replayed response |
+| `m` | Open traffic metrics and latency percentiles dashboard |
 | `s` | Toggle security alerts filter |
 | `h` | Toggle hex viewer in response panel |
-| `y` | Copy selected request as a `curl` command |
+| `y` | Copy selected request as a reproducible `curl` command |
+| `Y` | Copy raw request payload to clipboard |
+| `b` | Copy response body to clipboard |
+| `u` | Copy endpoint URL to clipboard |
 | `e` | Export captured session (HAR, PCAP, JSONL) |
 | `p` | Pause or resume live capture |
 | `c` | Clear capture buffer |

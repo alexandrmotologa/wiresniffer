@@ -19,19 +19,38 @@ WireSniffer provides an interactive terminal user interface inspired by LazyGit.
 
 | Key | Description |
 | --- | --- |
-| `/` | Activate quick filter input bar |
+| `/` | Activate structured query filter input bar |
 | `Esc` | Clear active filter and dismiss modals |
 | `s` | Toggle filter: show only flows with security alerts |
 | `1` | Filter by status 2xx (Success) |
 | `4` | Filter by status 4xx (Client Errors) |
 | `5` | Filter by status 5xx (Server Errors) |
 
-## Inspector and Actions
+### Structured Query Filter Syntax
+
+The query input bar (`/`) supports structured predicates combined with spaces:
+
+- `status:200`, `status:4xx`, `status:>=400`, `status:<300`
+- `latency:>200ms`, `latency:<=50`
+- `method:POST`, `method:GET`
+- `proto:http2`, `proto:grpc`, `proto:ws`
+- `header:authorization`, `header:content-type=application/json`
+- `alert:any`, `alert:critical`, `alert:high`
+- `json:user.id=42`, `json:errors`
+- Free text search across URLs, paths, methods, and body payloads
+
+## Inspector, Actions, and Modals
 
 | Key | Description |
 | --- | --- |
+| `r` | Replay selected HTTP transaction against target server |
+| `d` | Open diff modal comparing captured response with replayed response |
+| `m` | Open traffic metrics and latency percentiles (p50/p95/p99) modal |
 | `h` | Toggle between formatted body and side-by-side hex/ASCII view |
 | `y` | Copy selected transaction as a reproducible `curl` command |
+| `Y` | Copy raw request payload to system clipboard |
+| `b` | Copy response body to system clipboard |
+| `u` | Copy target URL to system clipboard |
 | `e` | Open export dialog (HAR 1.2, PCAP, JSONL) |
 | `a` | Open security vulnerability details modal |
 | `p` | Pause or resume live network packet capture |

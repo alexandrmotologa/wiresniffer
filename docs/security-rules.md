@@ -23,6 +23,8 @@ WireSniffer evaluates decoded traffic against security rules to catch sensitive 
 | `STACK_TRACE_EXPOSURE` | MEDIUM | Detailed backend traceback or error dump | Information Leak |
 | `SQL_ERROR_EXPOSURE` | MEDIUM | Raw database query syntax error returned in response | Information Leak |
 | `INSECURE_CORS_WILDCARD` | LOW | `Access-Control-Allow-Origin: *` with credentials enabled | Configuration |
+| `GRAPHQL_INTROSPECTION_ENABLED` | MEDIUM | Introspection returns full internal GraphQL schema | GraphQL Security |
+| `GRAPHQL_FIELD_SUGGESTIONS` | LOW | Server suggests unpublished field names on error | GraphQL Security |
 
 ## Detailed Rule Explanations
 
@@ -51,3 +53,28 @@ Parses JSON Web Tokens (`eyJ...`) without requiring signature keys:
 ### 5. Information Exposure
 - Identifies stack traces from Python (`Traceback (most recent call last)`), Java/Spring Boot (`org.springframework.web...`), and PHP (`Fatal error:`).
 - Identifies database errors disclosing query structure (PostgreSQL syntax errors, MySQL error codes).
+
+### 6. GraphQL Security
+- Introspection Checks: Verifies if `__schema` and `__type` queries succeed in returning the full schema. Disabling introspection in production prevents reconnaissance of unreleased or internal administrative models.
+- Field Suggestions: Detects "Did you mean ...?" hints in GraphQL error payloads that disclose internal field naming conventions.
+
+### 7. Custom Organizational Rules (.wiresniffer.yaml)
+Teams can enforce internal API policies by placing a `.wiresniffer.yaml` file in their repository root:
+
+```yaml
+rules:
+  - id: REQ_CORRELATION_ID
+    title: Missing X-Correlation-ID Header
+    severity: HIGH
+    description: Internal services must supply a correlation ID header.
+    target: request_headers
+    missing_header: X-Correlation-ID
+
+  - id: NO_SERVER_TOKENS
+    title: Server Header Disclosing Version
+    severity: LOW
+    description: Production gateways must strip internal server tokens.
+    target: response_headers
+    forbidden_header: Server
+```
+

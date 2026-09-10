@@ -8,6 +8,7 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
+from wiresniffer.analytics.metrics import compute_traffic_metrics
 from wiresniffer.capture.interface import get_available_interfaces
 from wiresniffer.capture.pcap_reader import read_pcap_packets
 from wiresniffer.capture.sniffer import PacketCaptureEngine
@@ -17,8 +18,11 @@ from wiresniffer.decoders.http1_decoder import Http1StreamParser
 from wiresniffer.decoders.http2_decoder import Http2StreamParser
 from wiresniffer.decoders.tls_sni import extract_tls_sni
 from wiresniffer.export.har_exporter import export_transactions_to_har
+from wiresniffer.export.report_generator import generate_html_report, generate_markdown_report
 from wiresniffer.reassembly.flow_tracker import FlowTracker
 from wiresniffer.reassembly.tcp_stream import StreamDirection, TcpStream
+from wiresniffer.replay.diff import calculate_transaction_diff, format_diff_markup
+from wiresniffer.replay.engine import replay_transaction
 from wiresniffer.security.engine import SecurityEngine
 from wiresniffer.tui.app import WireSnifferApp
 from wiresniffer.tui.state import TuiState
@@ -289,3 +293,134 @@ def interfaces() -> None:
             "Yes" if iface.is_loopback else "No",
         )
     console.print(table)
+
+
+@app.command()
+def replay(
+    pcap_file: str = typer.Argument(..., help="Path to .pcap capture file"),
+    flow_id: int = typer.Option(0, "--flow", "-f", help="Index of flow to replay (0-based)"),
+    url_override: Optional[str] = typer.Option(
+        None, "--url", "-u", help="Override target destination URL"
+    ),
+    timeout: float = typer.Option(10.0, "--timeout", "-t", help="Timeout in seconds"),
+) -> None:
+    """Replay a captured HTTP transaction and show live response diff."""
+    state = TuiState()
+    sec_engine = SecurityEngine()
+    tracker = create_pipeline(state, sec_engine)
+
+    for pkt in read_pcap_packets(pcap_file):
+        tracker.process_packet(pkt)
+
+    if not state.transactions:
+        console.print("[red]No transactions found in PCAP capture.[/red]")
+        sys.exit(1)
+
+    if flow_id < 0 or flow_id >= len(state.transactions):
+        console.print(
+            f"[red]Invalid flow index {flow_id}. Total flows: {len(state.transactions)}[/red]"
+        )
+        sys.exit(1)
+
+    tx = state.transactions[flow_id]
+    target_url = url_override or tx.full_url
+    console.print(
+        f"[bold]Replaying flow #{flow_id}:[/bold] [cyan]{tx.method} {target_url}[/cyan]..."
+    )
+
+    replayed = replay_transaction(tx, url_override=url_override, timeout=timeout)
+    diff = calculate_transaction_diff(tx, replayed)
+
+    console.print("\n" + format_diff_markup(diff))
+
+
+@app.command()
+def metrics(
+    pcap_file: str = typer.Argument(..., help="Path to .pcap capture file"),
+) -> None:
+    """Compute traffic analytics, latency percentiles (p50/p95/p99), and error rates."""
+    state = TuiState()
+    sec_engine = SecurityEngine()
+    tracker = create_pipeline(state, sec_engine)
+
+    for pkt in read_pcap_packets(pcap_file):
+        tracker.process_packet(pkt)
+
+    if not state.transactions:
+        console.print("[red]No transactions found in PCAP capture.[/red]")
+        sys.exit(1)
+
+    m = compute_traffic_metrics(state.transactions)
+    console.print(f"[bold cyan]WireSniffer Traffic Analytics[/bold cyan] ({pcap_file})\n")
+
+    # Overview table
+    t_overview = Table(title="Traffic Overview")
+    t_overview.add_column("Metric", style="bold white")
+    t_overview.add_column("Value", style="green")
+    t_overview.add_row("Total Requests", str(m.total_requests))
+    t_overview.add_row("Bytes Sent", f"{m.total_bytes_sent:,} B")
+    t_overview.add_row("Bytes Received", f"{m.total_bytes_received:,} B")
+    t_overview.add_row(
+        "Status Distribution (2xx / 3xx / 4xx / 5xx)",
+        f"{m.status_counts['2xx']} / {m.status_counts['3xx']} / {m.status_counts['4xx']} / {m.status_counts['5xx']}",
+    )
+    t_overview.add_row(
+        "Latency Min / Avg / Max",
+        f"{m.latency_min:.1f}ms / {m.latency_avg:.1f}ms / {m.latency_max:.1f}ms",
+    )
+    t_overview.add_row(
+        "Latency p50 / p95 / p99",
+        f"{m.latency_p50:.1f}ms / {m.latency_p95:.1f}ms / {m.latency_p99:.1f}ms",
+    )
+    console.print(t_overview)
+    console.print("")
+
+    # Slowest endpoints table
+    if m.slowest_endpoints:
+        t_slow = Table(title="Top Slowest Endpoints")
+        t_slow.add_column("Endpoint", style="white")
+        t_slow.add_column("Average Latency", style="yellow")
+        for ep, lat in m.slowest_endpoints:
+            t_slow.add_row(ep, f"{lat:.1f}ms")
+        console.print(t_slow)
+        console.print("")
+
+    # Error rate table
+    if m.highest_error_endpoints:
+        t_err = Table(title="Endpoints with Highest Error Rate")
+        t_err.add_column("Endpoint", style="white")
+        t_err.add_column("Error Rate", style="bold red")
+        t_err.add_column("Total Requests", style="dim")
+        for ep, rate, count in m.highest_error_endpoints:
+            t_err.add_row(ep, f"{rate:.1f}%", str(count))
+        console.print(t_err)
+
+
+@app.command()
+def report(
+    pcap_file: str = typer.Argument(..., help="Path to .pcap capture file"),
+    output: str = typer.Option(
+        "report.html", "--output", "-o", help="Output file path (.html or .md)"
+    ),
+    format: str = typer.Option("html", "--format", "-F", help="Report format: html or md"),
+) -> None:
+    """Generate a standalone security audit report mapped to OWASP API Top 10."""
+    state = TuiState()
+    sec_engine = SecurityEngine()
+    tracker = create_pipeline(state, sec_engine)
+
+    for pkt in read_pcap_packets(pcap_file):
+        tracker.process_packet(pkt)
+
+    fmt = format.lower()
+    if fmt in ("md", "markdown") or output.endswith(".md"):
+        content = generate_markdown_report(state.transactions)
+    else:
+        content = generate_html_report(state.transactions)
+
+    with open(output, "w", encoding="utf-8") as f:
+        f.write(content)
+
+    console.print(
+        f"[bold green]✔ Security audit report successfully saved to {output}[/bold green]"
+    )
