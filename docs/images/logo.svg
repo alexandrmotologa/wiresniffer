@@ -1,0 +1,170 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <clipPath id="squircle-clip">
+      <rect x="24" y="24" width="976" height="976" rx="220" />
+    </clipPath>
+
+    <linearGradient id="cyan-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f5ff"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+
+    <linearGradient id="amber-accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#00f5ff"/>
+    </linearGradient>
+
+    <linearGradient id="slate-facet-light" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#475569"/>
+      <stop offset="100%" stop-color="#334155"/>
+    </linearGradient>
+
+    <linearGradient id="slate-facet-mid" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+
+    <linearGradient id="slate-facet-dark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+
+    <linearGradient id="slate-facet-deep" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#070b14"/>
+    </linearGradient>
+
+    <filter id="subtle-shadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#000000" flood-opacity="0.18" />
+    </filter>
+  </defs>
+
+  <!-- Luxury White Squircle Container -->
+  <rect x="24" y="24" width="976" height="976" rx="220" fill="#ffffff" stroke="#e2e8f0" stroke-width="8" />
+
+  <g clip-path="url(#squircle-clip)">
+    <g transform="translate(512, 512)" filter="url(#subtle-shadow)">
+
+      <!-- Hexagonal Architectural Gateway Frame -->
+      <polygon points="
+        0,-400
+        346,-200
+        346,200
+        0,400
+        -346,200
+        -346,-200
+      " fill="none" stroke="#0f172a" stroke-width="42" stroke-linejoin="round" />
+
+      <!-- Inner Precision Telemetry Ring -->
+      <polygon points="
+        0,-362
+        313,-181
+        313,181
+        0,362
+        -313,181
+        -313,-181
+      " fill="none" stroke="#00f5ff" stroke-width="5" opacity="0.45" stroke-dasharray="16, 12" />
+
+      <!-- Corner Alignment Crosshairs -->
+      <line x1="-313" y1="-181" x2="-280" y2="-181" stroke="#00f5ff" stroke-width="3" opacity="0.6" />
+      <line x1="313" y1="-181" x2="280" y2="-181" stroke="#00f5ff" stroke-width="3" opacity="0.6" />
+      <line x1="-313" y1="181" x2="-280" y2="181" stroke="#00f5ff" stroke-width="3" opacity="0.6" />
+      <line x1="313" y1="181" x2="280" y2="181" stroke="#00f5ff" stroke-width="3" opacity="0.6" />
+
+      <!-- MASCOT: The Wire Hound (Origami Cyber-Bloodhound Silhouette) -->
+
+      <!-- 1. Alert Outer Ears (Left & Right) -->
+      <!-- Left Ear - Shadow Base -->
+      <polygon points="-80,-175 -205,-295 -230,-125 -145,-120" fill="url(#slate-facet-dark)" />
+      <!-- Left Ear - Inner Fold -->
+      <polygon points="-80,-175 -205,-295 -145,-120" fill="url(#slate-facet-mid)" />
+      <!-- Left Ear - Inner Cyan Sonic Scent Canal -->
+      <polygon points="-110,-170 -195,-275 -155,-135" fill="#00f5ff" opacity="0.85" />
+
+      <!-- Right Ear - Light Base -->
+      <polygon points="80,-175 205,-295 230,-125 145,-120" fill="url(#slate-facet-deep)" />
+      <!-- Right Ear - Inner Fold -->
+      <polygon points="80,-175 205,-295 145,-120" fill="url(#slate-facet-dark)" />
+      <!-- Right Ear - Inner Cyan Sonic Scent Canal -->
+      <polygon points="110,-170 195,-275 155,-135" fill="#0284c7" opacity="0.75" />
+
+      <!-- 2. Cranial Armor / Forehead -->
+      <!-- Center Crown Wedge (Light Left / Dark Right) -->
+      <polygon points="0,-190 -80,-175 0,-85" fill="url(#slate-facet-light)" />
+      <polygon points="0,-190 80,-175 0,-85" fill="url(#slate-facet-mid)" />
+
+      <!-- Upper Brow Plates -->
+      <polygon points="-80,-175 -165,-105 -135,-65 0,-85" fill="url(#slate-facet-mid)" />
+      <polygon points="80,-175 165,-105 135,-65 0,-85" fill="url(#slate-facet-dark)" />
+
+      <!-- Lateral Temples & Cheek Armor -->
+      <polygon points="-165,-105 -230,-125 -215,35 -145,25 -135,-65" fill="url(#slate-facet-dark)" />
+      <polygon points="165,-105 230,-125 215,35 145,25 135,-65" fill="url(#slate-facet-deep)" />
+
+      <!-- Lower Zygomatic / Cheeks -->
+      <polygon points="-145,25 -215,35 -175,145 -105,125" fill="url(#slate-facet-mid)" />
+      <polygon points="145,25 215,35 175,145 105,125" fill="url(#slate-facet-dark)" />
+
+      <!-- 3. Forehead Centerline to Snout Bridge -->
+      <polygon points="0,-85 -70,-5 0,45" fill="url(#slate-facet-light)" />
+      <polygon points="0,-85 70,-5 0,45" fill="url(#slate-facet-mid)" />
+
+      <!-- 4. Electric Cyan Optics (The Vigilant Eyes) -->
+      <!-- Left Eye Socket Backing -->
+      <polygon points="-135,-65 -60,-55 -68,-30 -130,-42" fill="#070b14" />
+      <!-- Left Glowing Cyan Eye -->
+      <polygon points="-128,-60 -65,-50 -75,-35 -125,-44" fill="url(#cyan-glow)" />
+      <polygon points="-105,-53 -80,-47 -88,-39 -110,-45" fill="#ffffff" opacity="0.9" />
+
+      <!-- Right Eye Socket Backing -->
+      <polygon points="135,-65 60,-55 68,-30 130,-42" fill="#070b14" />
+      <!-- Right Glowing Cyan Eye -->
+      <polygon points="128,-60 65,-50 75,-35 125,-44" fill="url(#cyan-glow)" />
+      <polygon points="105,-53 80,-47 88,-39 110,-45" fill="#ffffff" opacity="0.9" />
+
+      <!-- 5. Snout & Nasal Bridge (The Wire Tracker / Sniffer) -->
+      <!-- Snout Ridge Left (Light) -->
+      <polygon points="0,45 -65,25 -52,145 0,165" fill="url(#slate-facet-light)" />
+      <!-- Snout Ridge Right (Dark) -->
+      <polygon points="0,45 65,25 52,145 0,165" fill="url(#slate-facet-dark)" />
+
+      <!-- Snout Flanks -->
+      <polygon points="-65,25 -105,125 -52,145" fill="url(#slate-facet-mid)" />
+      <polygon points="65,25 105,125 52,145" fill="url(#slate-facet-deep)" />
+
+      <!-- 6. Olfactory Sensor / Nose Armor Plate -->
+      <!-- Upper Nose Prism -->
+      <polygon points="0,165 -45,152 -32,205 0,225" fill="#00f5ff" />
+      <polygon points="0,165 45,152 32,205 0,225" fill="#0284c7" />
+      <!-- Sensor Core Pulse Dot -->
+      <circle cx="0" cy="188" r="6" fill="#ffffff" />
+
+      <!-- 7. Lower Jaws & Chin Armor -->
+      <polygon points="-52,145 -105,125 -90,195 -32,205" fill="url(#slate-facet-dark)" />
+      <polygon points="52,145 105,125 90,195 32,205" fill="url(#slate-facet-deep)" />
+      <polygon points="0,225 -32,205 -55,245 0,265" fill="url(#slate-facet-mid)" />
+      <polygon points="0,225 32,205 55,245 0,265" fill="url(#slate-facet-dark)" />
+
+      <!-- 8. Armored Collar & Mantle Facets -->
+      <!-- Left Neck Shield -->
+      <polygon points="-105,125 -175,145 -145,255 -75,225" fill="url(#slate-facet-dark)" />
+      <!-- Right Neck Shield -->
+      <polygon points="105,125 175,145 145,255 75,225" fill="url(#slate-facet-deep)" />
+
+      <!-- Throat Core Triangular Plate -->
+      <polygon points="-75,225 0,265 -55,245" fill="url(#slate-facet-deep)" />
+      <polygon points="75,225 0,265 55,245" fill="url(#slate-facet-deep)" />
+
+      <!-- Central Mantle Breastplate with Wire Scent Core -->
+      <polygon points="0,265 -85,295 0,355" fill="url(#slate-facet-mid)" />
+      <polygon points="0,265 85,295 0,355" fill="url(#slate-facet-dark)" />
+      <polygon points="-85,295 -145,255 -115,345 0,355" fill="url(#slate-facet-dark)" />
+      <polygon points="85,295 145,255 115,345 0,355" fill="url(#slate-facet-deep)" />
+
+      <!-- Glowing Cyan Heart/Core (The Wire Interceptor Diamond) -->
+      <polygon points="0,280 28,308 0,336 -28,308" fill="url(#cyan-glow)" />
+      <polygon points="0,292 14,308 0,324 -14,308" fill="#ffffff" opacity="0.9" />
+
+    </g>
+  </g>
+</svg>

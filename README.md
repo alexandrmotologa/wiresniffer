@@ -1,6 +1,25 @@
-# WireSniffer
+<p align="center">
+  <img src="docs/images/logo.png?raw=true" alt="WireSniffer Logo" width="140" style="border-radius: 28px;" />
+</p>
 
-WireSniffer is an API traffic inspector and security sniffer for developers. It captures network traffic directly from local sockets, loopback interfaces, and container bridges. You do not need to configure an HTTP proxy, modify system certificates, or adjust environment variables in your application.
+<h1 align="center">WireSniffer</h1>
+
+<p align="center">
+  <strong>Developer-first API traffic inspector and security sniffer at the raw socket level.</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/alexandrmotologa/wiresniffer/actions"><img src="https://img.shields.io/github/actions/workflow/status/alexandrmotologa/wiresniffer/ci.yml?branch=main&style=flat-square&label=CI" alt="CI Status" /></a>
+  <a href="https://pypi.org/project/wiresniffer/"><img src="https://img.shields.io/badge/python-3.12%20%7C%203.13%20%7C%203.14-blue?style=flat-square" alt="Python Versions" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License" /></a>
+  <a href="https://github.com/alexandrmotologa/wiresniffer"><img src="https://img.shields.io/badge/architecture-zero--proxy-00f5ff?style=flat-square" alt="Architecture" /></a>
+</p>
+
+<p align="center">
+  <img src="docs/images/tui_demo.png?raw=true" alt="WireSniffer Interactive Terminal UI" width="920" />
+</p>
+
+WireSniffer captures network traffic directly from local sockets, loopback interfaces, and container bridges. You do not need to configure an HTTP proxy, install root certificates, or adjust environment variables in your application.
 
 WireSniffer reassembles TCP streams into complete HTTP/1.1, HTTP/2, WebSocket, and gRPC exchanges. It inspects payloads in real time for leaked credentials, plaintext tokens, Luhn-valid credit card numbers, and expired JWTs, presenting the data in a keyboard-driven terminal user interface.
 
@@ -90,11 +109,17 @@ wiresniffer inspect capture.pcap
 
 ### 3. Generate an OWASP Security Audit Report
 
+Generate a standalone dark-mode HTML report mapped to OWASP API Security Top 10 (2023) and CWE taxonomy:
+
 ```bash
 wiresniffer report capture.pcap --output security-audit.html --format html
 ```
 
-Or as Markdown for pull request comments:
+<p align="center">
+  <img src="docs/images/report_preview.png?raw=true" alt="WireSniffer Security Audit Report" width="900" />
+</p>
+
+Or generate Markdown for automated pull request comments:
 
 ```bash
 wiresniffer report capture.pcap --output audit.md --format md
@@ -102,11 +127,19 @@ wiresniffer report capture.pcap --output audit.md --format md
 
 ### 4. Analyze Performance and Latency Metrics
 
+Calculate p50, p95, and p99 latency percentiles, data volume, and slowest endpoints directly from terminal output:
+
 ```bash
 wiresniffer metrics capture.pcap
 ```
 
+<p align="center">
+  <img src="docs/images/cli_metrics.png?raw=true" alt="WireSniffer CLI Analytics" width="850" />
+</p>
+
 ### 5. Replay Captured Requests and Inspect Diffs
+
+Re-run captured requests against local or staging endpoints and inspect response differences:
 
 ```bash
 wiresniffer replay capture.pcap --flow 0 --url http://staging.internal/api/v1
@@ -114,7 +147,7 @@ wiresniffer replay capture.pcap --flow 0 --url http://staging.internal/api/v1
 
 ### 6. Run as a CI Security Gate
 
-Scan a network capture during end-to-end integration tests. Exit with status 1 if any high-severity credentials or credit cards leak:
+Scan network captures during end-to-end integration tests. Exit with status 1 if any high-severity credentials or credit cards leak:
 
 ```bash
 wiresniffer scan traffic.pcap --fail-on high
