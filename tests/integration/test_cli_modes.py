@@ -18,6 +18,21 @@ def test_cli_help():
     assert "Developer-first API traffic and security sniffer" in result.stdout
 
 
+def test_cli_version():
+    """Verify wiresniffer --version, -v, and version command."""
+    res_long = runner.invoke(app, ["--version"])
+    assert res_long.exit_code == 0
+    assert "wiresniffer v0.1.1" in res_long.stdout
+
+    res_short = runner.invoke(app, ["-v"])
+    assert res_short.exit_code == 0
+    assert "wiresniffer v0.1.1" in res_short.stdout
+
+    res_cmd = runner.invoke(app, ["version"])
+    assert res_cmd.exit_code == 0
+    assert "wiresniffer v0.1.1" in res_cmd.stdout
+
+
 def test_cli_interfaces():
     """Verify wiresniffer interfaces lists available network adapters."""
     result = runner.invoke(app, ["interfaces"])

@@ -8,6 +8,7 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
+from wiresniffer import __version__
 from wiresniffer.analytics.metrics import compute_traffic_metrics
 from wiresniffer.capture.interface import get_available_interfaces
 from wiresniffer.capture.pcap_reader import read_pcap_packets
@@ -33,6 +34,33 @@ app = typer.Typer(
     add_completion=False,
 )
 console = Console(width=120)
+
+
+def version_callback(value: bool):
+    if value:
+        console.print(f"wiresniffer v{__version__}")
+        raise typer.Exit()
+
+
+@app.callback()
+def main_callback(
+    version: Optional[bool] = typer.Option(
+        None,
+        "--version",
+        "-v",
+        callback=version_callback,
+        is_eager=True,
+        help="Show version and exit.",
+    ),
+):
+    """Developer-first API traffic and security sniffer at the socket level."""
+    pass
+
+
+@app.command("version")
+def version_cmd():
+    """Print the version of WireSniffer."""
+    console.print(f"wiresniffer v{__version__}")
 
 
 def create_pipeline(

@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/images/tui_demo.png?raw=true" alt="WireSniffer Interactive Terminal UI" width="920" />
+  <img src="docs/images/wiresniffer_demo.gif" alt="WireSniffer Interactive Terminal UI & Metrics Demo" width="920" />
 </p>
 
 WireSniffer captures network traffic directly from local sockets, loopback interfaces, and container bridges. You do not need to configure an HTTP proxy, install root certificates, or adjust environment variables in your application.
